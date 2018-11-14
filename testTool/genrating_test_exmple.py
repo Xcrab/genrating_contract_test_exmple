@@ -15,7 +15,6 @@ def main():
     parser.add_argument("-asd","--abi_sign_dir",type=str,help="所要生成测试用例文件的目录",
                         dest="abi_sign_dir")
 
-    ar
     return 0
 
 if __name__=="__main__":
