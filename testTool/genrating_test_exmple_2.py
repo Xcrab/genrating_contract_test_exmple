@@ -3,6 +3,33 @@ import argparse
 import demjson
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
 
+
+#处理签名，将所有的函数名与参数类型进行整理
+def getFunSig(fun):
+    if "name" not in fun:
+        return None
+    name = fun["name"]
+    if "inputs" not in fun:
+        return name+"()"
+    else:
+        inputs = fun["inputs"]
+        types = list()
+        for input in inputs:
+            types.append(input["type"])
+        dict = {"name":name,"types":types}
+        return dict
+    pass
+
+#获取所有函数
+def getFuns(abi):
+    funs = list()
+    for ele in abi:
+        if "type" in ele and ele["type"] == "function":
+           funs.append(ele)
+    return funs
+    pass
+
+#获取文件的内容并转化为UTF8的json
 def getAbi(file_path):
     with open(file_path,"r") as f:
         data = f.read()
@@ -11,6 +38,7 @@ def getAbi(file_path):
         return abi
 
 def solve_file(dir,item):
+    sigs = []
     # 设置生成测试用例的地址
     exmple_path = "../Test_case"
 
@@ -18,8 +46,17 @@ def solve_file(dir,item):
     if not os.path.exists(exmple_path):
         os.mkdir(exmple_path)
 
+
+    #首先获取abi内容转化为json
+    #然后之保留funtion部分abi
     abi = getAbi(os.path.join(os.path.abspath(dir), item))
+    if abi:
+        funs = getFuns(abi)
+        if funs:
+            for fun in funs:
+                sigs.append(getFunSig(fun))
     print(abi)
+    print(sigs)
     return 0
 
 def solve_dir(dir):
@@ -49,4 +86,9 @@ def main():
         solve_file(args.abi_dir,args.contract)
     else:
         solve_dir(args.abi_dir)
+    pass
+
+
+if __name__=="__main__":
+    main()
     pass
