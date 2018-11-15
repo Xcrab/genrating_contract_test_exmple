@@ -2,6 +2,10 @@ import os
 import argparse
 
 
+def get_fun_type(data):
+    for line_no in range(len(data)):
+        s = data[line_no]
+
 
 #读取路径中的文件内内容
 def get_abi_sign(file_path):
@@ -44,6 +48,11 @@ def solve_file(abi_sign,dir):
 
     #将原始的函数签名进行分离
     signBefore,signAfter = disassemble_sign(txtData)
+
+
+
+
+
     print(signBefore)
     print(signAfter)
 
