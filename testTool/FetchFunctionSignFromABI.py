@@ -20,12 +20,14 @@ def getRawContractName(file_name):
         return name
     return None
     pass
+
 def getAbi(file_path):
     with open(file_path,"r") as f:
         data = f.read()
         f.close()
         abi = demjson.decode(data,"utf-8")
         return abi
+
 def getFuns(abi):
     funs = list()
     for ele in abi:
@@ -33,6 +35,7 @@ def getFuns(abi):
            funs.append(ele)
     return funs
     pass
+
 def getFunSig(fun):
     if "name" not in fun:
         return None
@@ -47,6 +50,7 @@ def getFunSig(fun):
         typesStr = ",".join(types)
         return name+"("+typesStr+")"
     pass
+
 def getFunId(Sig):
     # hashlib.s?
     s = keccak_256()
@@ -55,10 +59,12 @@ def getFunId(Sig):
     bytes4 = "0x"+hex[:8]
     return bytes4
     pass
+
 def test():
     sig = "approve(address,uint256)"
     print(getFunId(sig))
     pass
+
 def solve_file(abi_dir,abi_item):
     funid_path = "../test_exmple_abi_sign/"
     if not os.path.exists(funid_path):
@@ -75,6 +81,7 @@ def solve_file(abi_dir,abi_item):
                     f.write("\n")
     f.close()
     pass
+
 def solve_dir(abi_dir):
     dirs = os.listdir(abi_dir)
     for item in dirs:
@@ -114,4 +121,3 @@ def main():
 if __name__=="__main__":
     main()
     #test()
-    4

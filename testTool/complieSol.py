@@ -19,6 +19,7 @@ def solve_file(contract,sol_dir):
     ins = "solc --bin --overwrite " + sol_dir + "/" + contract + " -o " + sbin_path
     sbin = os.popen(ins)
 
+    #调试使用
     print(sabi)
     print(sbin)
 
