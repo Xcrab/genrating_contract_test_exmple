@@ -35,12 +35,15 @@ contract FunParam{
         }
     }
 
-    function testFixedByte(bytes1 b1,bytes32 b32) public pure returns(bytes32){
+    function testFixedByte(bytes1 b1,bytes32 b32,byte bb) public pure returns(bytes32){
         int sum = 0;
         if(b1.length == 0){
             sum++;
         }
         if(b32.length == 0){
+            sum++;
+        }
+        if(bb.length == 0){
             sum++;
         }
         return b32;

@@ -1,7 +1,60 @@
 import os
 import argparse
 import demjson
+import re
+import random
+import string
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
+
+#分类型生成不同的参数
+def generateData(type):
+
+    #如果参数类型为整形
+    if type.find("int"):
+        dataLen = 0
+        listLen = 0
+        #存放返回数据，为一个数组
+        reData = []
+        #如果为数组以"["为分界获取类型长度和数组长度
+        #暂时还没考虑多维数组
+        if type.find("["):
+            dataLen = int(re.findall("\d+",type[0:type.find("[")])[0])
+            listLen = int(re.findall("\d+", type[type.find("["):])[0])
+        else:
+            dataLen = int(re.findall("\d+", type)[0])
+            listLen = 1
+
+        for num in range(listLen):
+            if type[0] == "u":
+                reData.append(random.randint(0,1 << dataLen))
+            else:
+                reData.append(-1 << (dataLen-1),1 << (dataLen - 1) - 1)
+        return reData
+
+
+    if type.find("address"):
+        return 2
+
+    if type.find("bool"):
+        flag = random.randint(0,1)
+        if flag == 1:
+            return True
+        else:
+            return False
+
+    if type.find("byte"):
+        dataLen = 0
+        if len(type) == 4:
+            dataLen = 1
+
+        return 4
+
+    if type.find("string"):
+        sLen = random.randint(0,100)
+        sData = ''.join(random.sample(string.ascii_letters + string.digits, sLen))
+        return sData
+
+    return 0
 
 
 #处理签名，将所有的函数名与参数类型进行整理
@@ -54,8 +107,6 @@ def solve_file(dir,item):
         if funs:
             for fun in funs:
                 sigs.append(getFunSig(fun))
-
-
 
     print(abi)
     print(sigs)
