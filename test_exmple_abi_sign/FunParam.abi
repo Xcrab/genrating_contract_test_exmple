@@ -1,0 +1,6 @@
+0x1a5b3a02:testUFixedByte(bytes,string)
+0x369ad6ed:testInt(uint8,uint256,int8,int256)
+0x42f45790:testAddress(address)
+0x72885d78:testIntArray(int256[10],uint256[10])
+0x9c7e8903:testFixedByte(bytes1,bytes32)
+0xe8dde232:testBool(bool)

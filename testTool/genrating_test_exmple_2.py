@@ -38,6 +38,7 @@ def getAbi(file_path):
         return abi
 
 def solve_file(dir,item):
+    #用于存储函数名name,参数类型types
     sigs = []
     # 设置生成测试用例的地址
     exmple_path = "../Test_case"
@@ -45,8 +46,6 @@ def solve_file(dir,item):
     # 判断是否有该路径，没有就创建
     if not os.path.exists(exmple_path):
         os.mkdir(exmple_path)
-
-
     #首先获取abi内容转化为json
     #然后之保留funtion部分abi
     abi = getAbi(os.path.join(os.path.abspath(dir), item))
@@ -55,6 +54,9 @@ def solve_file(dir,item):
         if funs:
             for fun in funs:
                 sigs.append(getFunSig(fun))
+
+
+
     print(abi)
     print(sigs)
     return 0
