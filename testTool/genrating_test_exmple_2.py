@@ -7,32 +7,42 @@ import string
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
 
 #分类型生成不同的参数
+#如果是数组则返回[1,2,3,4,5],如果不是数组则返回单个数据[1]
 def generateData(type):
 
     #如果参数类型为整形
-    if type.find("int"):
+    if type.find("int") is not -1:
+        # int类型的长度，例如int256中的256
         dataLen = 0
+        # int数组的长度，单个数字为0
         listLen = 0
-        #存放返回数据，为一个数组
         reData = []
-        #如果为数组以"["为分界获取类型长度和数组长度
-        #暂时还没考虑多维数组
-        if type.find("["):
-            dataLen = int(re.findall("\d+",type[0:type.find("[")])[0])
-            listLen = int(re.findall("\d+", type[type.find("["):])[0])
+        # 把类型中的数字全部提取出来
+        lenList = re.findall("\d+", type)
+        # 如果是int256[256]
+        if (len(lenList) > 1) and type.find("[") is not -1:
+            dataLen = int(lenList[0])
+            listLen = int(lenList[1])
+        # 如果是int256[]
+        elif (len(lenList) == 1) and type.find("[") is not -1:
+            dataLen = int(lenList[0])
+            listLen = random.randint(0, 1024)
+        # 如果是int256
         else:
-            dataLen = int(re.findall("\d+", type)[0])
+            dataLen = int(lenList[0])
             listLen = 1
-
         for num in range(listLen):
             if type[0] == "u":
-                reData.append(random.randint(0,1 << dataLen))
+                reData.append(random.randint(0, 1 << dataLen))
             else:
-                reData.append(-1 << (dataLen-1),1 << (dataLen - 1) - 1)
+                reData.append(random.randint(-1 << (dataLen - 1), 1 << (dataLen - 1) - 1))
         return reData
 
 
     if type.find("address"):
+        #1、目前是随机生成
+        #2、后续优化会从已有地址中随机选取地址
+
         return 2
 
     if type.find("bool"):
@@ -42,12 +52,32 @@ def generateData(type):
         else:
             return False
 
-    if type.find("byte"):
+    if type.find("byte") is not -1:
         dataLen = 0
+        listLen = 0
+        reData = []
+        lenList = re.findall("\d+",type)
+        #byte
         if len(type) == 4:
             dataLen = 1
+            listLen = 1
+        #bytes32
+        elif (len(lenList) == 1) and type.find("[") == -1:
+            dataLen = int(lenList[0])
+            listLen = 1
+        #byte[32]
+        elif (len(lenList) == 1) and type.find("[") is not -1:
+            dataLen = 32
+            listLen = int(lenList[0])
+        #byte[]
+        else:
+            dataLen = 32
+            listLen = random.randint(0,1024)
 
-        return 4
+        for num in range(listLen):
+            s = ''.join(random.sample(string.ascii_letters + string.digits, dataLen))
+            reData.append(s)
+        return reData
 
     if type.find("string"):
         sLen = random.randint(0,100)
