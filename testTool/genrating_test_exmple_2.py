@@ -4,12 +4,12 @@ import demjson
 import re
 import random
 import string
+import binascii
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
 
 #分类型生成不同的参数
 #如果是数组则返回[1,2,3,4,5],如果不是数组则返回单个数据[1]
 def generateData(type):
-
     #如果参数类型为整形
     if type.find("int") is not -1:
         # int类型的长度，例如int256中的256
@@ -39,13 +39,17 @@ def generateData(type):
         return reData
 
 
-    if type.find("address"):
+    if type.find("address") is not -1:
         #1、目前是随机生成
         #2、后续优化会从已有地址中随机选取地址
+        reData = []
+        s = ''.join(random.sample(string.ascii_letters + string.digits, 20))
+        ss = binascii.b2a_hex(s.encode("utf8"))
+        sss = str(ss)
+        reData.append("0x" + sss[2:len(sss) - 1])
+        return reData
 
-        return 2
-
-    if type.find("bool"):
+    if type.find("bool") is not -1:
         flag = random.randint(0,1)
         if flag == 1:
             return True
@@ -76,16 +80,16 @@ def generateData(type):
 
         for num in range(listLen):
             s = ''.join(random.sample(string.ascii_letters + string.digits, dataLen))
-            reData.append(s)
+            ss = binascii.b2a_hex(s.encode("utf8"))
+            sss = str(ss)
+            reData.append("0x" + sss[2:len(sss)-1])
         return reData
 
-    if type.find("string"):
-        sLen = random.randint(0,100)
+    if type.find("string") is not -1:
+        sLen = random.randint(0,64)
         sData = ''.join(random.sample(string.ascii_letters + string.digits, sLen))
         return sData
-
-    return 0
-
+    return -1
 
 #处理签名，将所有的函数名与参数类型进行整理
 def getFunSig(fun):
@@ -137,9 +141,23 @@ def solve_file(dir,item):
         if funs:
             for fun in funs:
                 sigs.append(getFunSig(fun))
-
     print(abi)
     print(sigs)
+
+    for items in sigs:
+        dict = {}
+        for item in items["types"]:
+            print(item)
+            try:
+                reData = generateData(item)
+                dict[item] = reData
+            except:
+                print("ERROR")
+                print(items)
+        items["types"] = dict
+    print(sigs)
+    # sjson = demjson.encode(sigs)
+    # print(sjson)
     return 0
 
 def solve_dir(dir):
