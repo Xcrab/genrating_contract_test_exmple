@@ -73,7 +73,7 @@ def generateData(type):
         elif (len(lenList) == 1) and type.find("[") is not -1:
             dataLen = 32
             listLen = int(lenList[0])
-        #byte[]
+        #byte[] & bytes
         else:
             dataLen = 32
             listLen = random.randint(0,1024)
@@ -86,9 +86,11 @@ def generateData(type):
         return reData
 
     if type.find("string") is not -1:
+        reData = []
         sLen = random.randint(0,64)
         sData = ''.join(random.sample(string.ascii_letters + string.digits, sLen))
-        return sData
+        reData.append(sData)
+        return reData
     return -1
 
 #处理签名，将所有的函数名与参数类型进行整理
@@ -128,11 +130,14 @@ def solve_file(dir,item):
     #用于存储函数名name,参数类型types
     sigs = []
     # 设置生成测试用例的地址
-    exmple_path = "../Test_case"
+    exmple_path = "../Test_random_data"
 
     # 判断是否有该路径，没有就创建
     if not os.path.exists(exmple_path):
         os.mkdir(exmple_path)
+
+    itemName = item[:len(item)-3]+"json"
+    f = open(os.path.join(os.path.abspath(exmple_path), itemName), "w+")
     #首先获取abi内容转化为json
     #然后之保留funtion部分abi
     abi = getAbi(os.path.join(os.path.abspath(dir), item))
@@ -141,27 +146,46 @@ def solve_file(dir,item):
         if funs:
             for fun in funs:
                 sigs.append(getFunSig(fun))
-    print(abi)
+
+    ##########测试中间变量
+    #print(abi)
+    print("原形")
     print(sigs)
 
     for items in sigs:
-        dict = {}
+        alldata=[]
+        alldata.clear()
         for item in items["types"]:
-            print(item)
+            #print(item)
             try:
+                dict = {}
+                dict.clear()
                 reData = generateData(item)
                 dict[item] = reData
+                alldata.append(dict)
             except:
                 print("ERROR")
                 print(items)
-        items["types"] = dict
+        items["types"] = alldata
+    print("生成测试数据")
     print(sigs)
-    # sjson = demjson.encode(sigs)
-    # print(sjson)
-    return 0
+    print("  ")
+
+    ##########测试中间变量
+    sjson = demjson.encode(sigs)
+    f.write(sjson)
+    f.close()
+    print(sjson)
+    pass
 
 def solve_dir(dir):
-    return 0
+    dirs = os.listdir(dir)
+    for item in dirs:
+        try:
+            solve_file(dir,item)
+        except:
+            continue
+    pass
 
 def main():
     global args
