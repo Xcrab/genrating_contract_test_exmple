@@ -7,6 +7,21 @@ import string
 import binascii
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
 
+#自动生成迁移文件(migrations)
+#用文本生成的策略
+def generateMigration(item):
+    m_path = "../test_migrations_file/"
+    if not os.path.exists(m_path):
+        os.mkdir(m_path)
+    f = open(os.path.join(os.path.abspath(m_path),item + ".js"),"w+")
+    try:
+        f.write("var %s = artifacts.require(\"./%s.sol\");\n" % (item,item))
+        f.write("module.exports = function(deployer){\n")
+        f.write("deployer.deploy(%s)\n" % (item))
+        f.write("};\n")
+    except:
+        print("生成迁移文件发生错误")
+
 #分类型生成不同的参数
 #如果是数组则返回[1,2,3,4,5],如果不是数组则返回单个数据[1]
 def generateData(type):
@@ -126,21 +141,21 @@ def getAbi(file_path):
         abi = demjson.decode(data,"utf-8")
         return abi
 
-def solve_file(dir,item):
+def solve_file(dir,item_flie):
     #用于存储函数名name,参数类型types
     sigs = []
     # 设置生成测试用例的地址
     exmple_path = "../Test_random_data"
-
     # 判断是否有该路径，没有就创建
     if not os.path.exists(exmple_path):
         os.mkdir(exmple_path)
 
-    itemName = item[:len(item)-3]+"json"
-    f = open(os.path.join(os.path.abspath(exmple_path), itemName), "w+")
+    itemJsonName = item_flie[:len(item_flie)-3]+"json"
+    itemJsName = item_flie[:len(item_flie)-4]
+    f = open(os.path.join(os.path.abspath(exmple_path), itemJsonName), "w+")
     #首先获取abi内容转化为json
     #然后之保留funtion部分abi
-    abi = getAbi(os.path.join(os.path.abspath(dir), item))
+    abi = getAbi(os.path.join(os.path.abspath(dir), item_flie))
     if abi:
         funs = getFuns(abi)
         if funs:
@@ -152,6 +167,7 @@ def solve_file(dir,item):
     print("原形")
     print(sigs)
 
+    #自动生成合约测试数据
     for items in sigs:
         alldata=[]
         alldata.clear()
@@ -176,8 +192,12 @@ def solve_file(dir,item):
     f.write(sjson)
     f.close()
     print(sjson)
+
+    #自动生成迁移文件
+    generateMigration(itemJsName)
     pass
 
+#批量处理文件
 def solve_dir(dir):
     dirs = os.listdir(dir)
     for item in dirs:
