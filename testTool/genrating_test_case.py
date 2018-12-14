@@ -4,8 +4,71 @@ import demjson
 import re
 import random
 import string
+import copy
 import binascii
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
+
+#通用读取函数，读取json文件
+def getJsonData(file_path):
+    with open(file_path,"r") as f:
+        data = f.read()
+        f.close()
+        data = demjson.decode(data,"utf-8")
+        return data
+
+#自动生成测试用例(test)
+def generateTestCase(item):
+    #读取随机产生的数据
+    dir = "../Test_random_data/"
+    no = random.randint(0, 9)
+    randData = getJsonData(os.path.join(os.path.abspath(dir),str(no) + item + ".json"))
+
+    #存放各个函数的执行语句 await instance.xxx(param1,param2,...)
+    exlines = []
+    for oneFun in randData:
+        typeData = ()
+        exline = ("await instace.%s(" % (oneFun["name"]))
+
+        for oneType in oneFun["types"]:
+            for key, value in oneType.items():
+                if key.find("int"):
+                    if len(value) == 1:
+                        exline = exline + str(value[0]) + ","
+                    else:
+                        exline = exline + str(value) + ","
+
+                else:
+                    if len(value) == 1:
+                        exline = exline + "\"" + str(value[0]) + "\"" + ","
+                    else:
+                        exline = exline + "\"" + str(value) + "\"" + ","
+        if exline[:len(exline)].find(",") is not -1:
+            exline = exline[:len(exline) - 1]
+        exline += ")"
+        exlines.append(exline)
+
+    m_path = "../test_case/"
+    if not os.path.exists(m_path):
+        os.mkdir(m_path)
+    f = open(os.path.join(os.path.abspath(m_path),item+"test.js"),"w+")
+    try:
+        f.write("const %s = artifacts.require(\"./%s.sol\")\n" % (item,item))
+        f.write("contract('%s', async (accounts) => {\n" % item)
+        f.write("const owner = accounts[0]\n")
+        f.write("let instance\n")
+        f.write("beforeEach('setup contract for each test',async() => {\n")
+        f.write("instance = await %s.new()\n" % item)
+        f.write("})\n")
+        #根据随机生成的数据生成测试用例
+        f.write("it('test %d',async() => {\n")
+        for l in exlines:
+            f.write(l + "\n")
+        f.write("})\n")
+        f.write("})\n")
+    except:
+        print("生成测试用例发生错误")
+    return 0
+
 
 #自动生成迁移文件(migrations)
 #用文本生成的策略
@@ -21,6 +84,36 @@ def generateMigration(item):
         f.write("};\n")
     except:
         print("生成迁移文件发生错误")
+
+def generateDataJson(sigs,itemJsonName,no = 0):
+    exmple_path = "../Test_random_data"
+    # 判断是否有该路径，没有就创建
+    if not os.path.exists(exmple_path):
+        os.mkdir(exmple_path)
+    f = open(os.path.join(os.path.abspath(exmple_path), str(no) + itemJsonName), "w+")
+    for items in sigs:
+        alldata=[]
+        alldata.clear()
+        for item in items["types"]:
+            #print(item)
+            try:
+                dict = {}
+                dict.clear()
+                reData = generateData(item)
+                dict[item] = reData
+                alldata.append(dict)
+            except:
+                print("ERROR")
+                print(item)
+        items["types"] = alldata
+    print("生成测试数据")
+    print(sigs)
+    print("  ")
+    ##########测试中间变量
+    sjson = demjson.encode(sigs)
+    f.write(sjson)
+    f.close()
+    print(sjson)
 
 #分类型生成不同的参数
 #如果是数组则返回[1,2,3,4,5],如果不是数组则返回单个数据[1]
@@ -52,7 +145,6 @@ def generateData(type):
             else:
                 reData.append(random.randint(-1 << (dataLen - 1), 1 << (dataLen - 1) - 1))
         return reData
-
 
     if type.find("address") is not -1:
         #1、目前是随机生成
@@ -152,9 +244,8 @@ def solve_file(dir,item_flie):
 
     itemJsonName = item_flie[:len(item_flie)-3]+"json"
     itemJsName = item_flie[:len(item_flie)-4]
-    f = open(os.path.join(os.path.abspath(exmple_path), itemJsonName), "w+")
     #首先获取abi内容转化为json
-    #然后之保留funtion部分abi
+    #然后只保留funtion部分abi
     abi = getAbi(os.path.join(os.path.abspath(dir), item_flie))
     if abi:
         funs = getFuns(abi)
@@ -162,39 +253,15 @@ def solve_file(dir,item_flie):
             for fun in funs:
                 sigs.append(getFunSig(fun))
 
-    ##########测试中间变量
-    #print(abi)
-    print("原形")
-    print(sigs)
-
-    #自动生成合约测试数据
-    for items in sigs:
-        alldata=[]
-        alldata.clear()
-        for item in items["types"]:
-            #print(item)
-            try:
-                dict = {}
-                dict.clear()
-                reData = generateData(item)
-                dict[item] = reData
-                alldata.append(dict)
-            except:
-                print("ERROR")
-                print(items)
-        items["types"] = alldata
-    print("生成测试数据")
-    print(sigs)
-    print("  ")
-
-    ##########测试中间变量
-    sjson = demjson.encode(sigs)
-    f.write(sjson)
-    f.close()
-    print(sjson)
-
+    #生成随机数据测试文件
+    for i in range(10):
+        #注意这里是深拷贝
+        cpsigs = copy.deepcopy(sigs)
+        generateDataJson(cpsigs,itemJsonName,i)
     #自动生成迁移文件
     generateMigration(itemJsName)
+    #自动生成测试用例
+    generateTestCase(itemJsName)
     pass
 
 #批量处理文件
