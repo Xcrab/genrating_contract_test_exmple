@@ -630,10 +630,6 @@ contract Mainsale is StagedCrowdsale, FABACommonSale {
   
   uint public TymTokensPercent;
   
-  
-  
-   
-  
   function setFABAcompanyTokensPercent(uint newFABAcompanyTokensPercent) public onlyOwner {
     FABAcompanyTokensPercent = newFABAcompanyTokensPercent;
   }
