@@ -8,6 +8,27 @@ import copy
 import binascii
 from _pysha3 import keccak_224, keccak_256, keccak_384, keccak_512
 
+#构造合约账户池程池
+def contructAccountsPool():
+
+    account_path = "../test_Accounts/"
+    if not os.path.exists(account_path):
+        os.mkdir(account_path)
+    f = open(os.path.join(os.path.abspath(account_path),"Accounts.json"),"w+")
+    dict={}
+    accountsStorePath = "/home/xcrab/ethTest"
+    ins = ("geth --datadir \"%s\" account list" % accountsStorePath)
+    accountData = os.popen(ins)
+    for line in accountData.readlines():
+        accountNO = line[:7] + line[9]
+        account = line[len(line)-41:len(line)-1]
+        dict[accountNO] = account
+
+    fjson = demjson.encode(dict)
+    print(fjson)
+    f.write(fjson)
+    f.close()
+
 #通用读取函数，读取json文件
 def getJsonData(file_path):
     with open(file_path,"r") as f:
@@ -31,7 +52,7 @@ def generateTestCase(item):
 
         for oneType in oneFun["types"]:
             for key, value in oneType.items():
-                if key.find("int"):
+                if key.find("int") is not -1:
                     if len(value) == 1:
                         exline = exline + str(value[0]) + ","
                     else:
@@ -68,7 +89,6 @@ def generateTestCase(item):
     except:
         print("生成测试用例发生错误")
     return 0
-
 
 #自动生成迁移文件(migrations)
 #用文本生成的策略
@@ -157,11 +177,13 @@ def generateData(type):
         return reData
 
     if type.find("bool") is not -1:
+        reData = []
         flag = random.randint(0,1)
         if flag == 1:
-            return True
+            reData.append(True)
         else:
-            return False
+            reData.append(False)
+        return reData
 
     if type.find("byte") is not -1:
         dataLen = 0
@@ -302,5 +324,6 @@ def main():
 
 
 if __name__=="__main__":
+    contructAccountsPool()
     main()
     pass
