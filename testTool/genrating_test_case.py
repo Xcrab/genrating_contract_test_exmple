@@ -62,10 +62,11 @@ def generateTestCase(item):
                     if len(value) == 1:
                         exline = exline + "\"" + str(value[0]) + "\"" + ","
                     else:
-                        exline = exline + "\"" + str(value) + "\"" + ","
+                        exline = exline + str(value) + ","
         if exline[:len(exline)].find(",") is not -1:
             exline = exline[:len(exline) - 1]
         exline += ")"
+        exline = exline.replace('\'',"\"")
         exlines.append(exline)
 
     m_path = "../test_case/"
